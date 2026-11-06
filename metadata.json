@@ -1,0 +1,6 @@
+{
+  "name": "Q-GRID SENTINEL - Smart Grid Cybersecurity Exhibition",
+  "description": "High-performance real-time smart grid cybersecurity monitoring dashboard with Web Bluetooth edge node telemetry, post-quantum threat visualizer, offline PWA support, and Gemini AI sentinel.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

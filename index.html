@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en" class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    
+    <!-- Title & Description -->
+    <title>Q-GRID SENTINEL - Smart Grid Cybersecurity Exhibition</title>
+    <meta name="description" content="High-performance real-time smart grid cybersecurity monitoring dashboard with Web Bluetooth edge node telemetry, post-quantum threat visualizer, offline PWA support, and AI Sentinel." />
+    
+    <!-- OpenGraph & Social Cards -->
+    <meta property="og:title" content="Q-GRID SENTINEL - Smart Grid Cybersecurity Exhibition" />
+    <meta property="og:description" content="High-performance real-time smart grid cybersecurity monitoring dashboard with Web Bluetooth edge node telemetry, post-quantum threat visualizer, offline PWA support, and AI Sentinel." />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+
+    <!-- PWA & Mobile Web App Manifest -->
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="theme-color" content="#090d16" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Q-GRID" />
+    <link rel="apple-touch-icon" href="/icon.svg" />
+    <link rel="icon" type="image/svg+xml" href="/icon.svg" />
+
+    <!-- High-Performance Web Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=JetBrains+Mono:wght@400;600;700&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Stylesheet -->
+    <link rel="stylesheet" href="/style.css" />
+
+    <!-- TensorFlow.js Edge AI Runtime (with offline threshold fallback in logic.js) -->
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.10.0/dist/tf.min.js" defer></script>
+  </head>
+  <body class="bg-[#05070c] text-slate-100 antialiased selection:bg-cyan-500 selection:text-black">
+    <div id="root"></div>
+
+    <!-- PWA Service Worker Registration -->
+    <script>
+      if ('caches' in window) {
+        caches.keys().then((keys) => {
+          keys.forEach((k) => {
+            if (k !== 'qgrid-sentinel-v5.0') {
+              caches.delete(k).catch(() => {});
+            }
+          });
+        }).catch(() => {});
+      }
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js')
+            .then((reg) => {
+              reg.update().catch(() => {});
+              console.log('[Q-GRID] Service Worker Registered. Scope:', reg.scope);
+            })
+            .catch((err) => console.warn('[Q-GRID] Service Worker Registration failed:', err));
+        });
+      }
+    </script>
+
+    <!-- Main Module Entry -->
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

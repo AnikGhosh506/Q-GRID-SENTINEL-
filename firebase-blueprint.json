@@ -1,0 +1,261 @@
+{
+  "entities": {
+    "ActivityLog": {
+      "title": "ActivityLog",
+      "description": "Records user and system activity across the Q-GRID SENTINEL website, including navigation, BLE connections, key rotations, node isolations, settings changes, and forensic exports.",
+      "type": "object",
+      "properties": {
+        "ownerId": {
+          "type": "string",
+          "description": "UID of the authenticated user who recorded the activity.",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "action": {
+          "type": "string",
+          "description": "Short identifier of the activity performed.",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "category": {
+          "type": "string",
+          "description": "Category of the website activity.",
+          "enum": ["NAVIGATION", "BLE_CONNECTION", "PQC_MITIGATION", "NODE_CONTROL", "SETTINGS", "EXPORT", "AI_SENTINEL"],
+          "maxLength": 40
+        },
+        "details": {
+          "type": "string",
+          "description": "Detailed human-readable description of the website activity.",
+          "minLength": 1,
+          "maxLength": 600
+        },
+        "nodeId": {
+          "type": "string",
+          "description": "Substation node ID associated with the activity (or 'ALL' / 'GLOBAL').",
+          "minLength": 1,
+          "maxLength": 64,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "qberAtEvent": {
+          "type": "number",
+          "description": "QBER percentage at the moment the activity occurred."
+        },
+        "clientTimestamp": {
+          "type": "string",
+          "description": "ISO-8601 timestamp string generated on the client.",
+          "minLength": 10,
+          "maxLength": 40
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when the activity record was persisted."
+        }
+      },
+      "required": [
+        "ownerId",
+        "action",
+        "category",
+        "details",
+        "nodeId",
+        "qberAtEvent",
+        "clientTimestamp",
+        "createdAt"
+      ]
+    },
+    "TriggerEvent": {
+      "title": "TriggerEvent",
+      "description": "Records every security trigger event, QBER threshold breach, Eve hardware/UI switch activation, cyberattack injection, and automated mitigation trigger.",
+      "type": "object",
+      "properties": {
+        "ownerId": {
+          "type": "string",
+          "description": "UID of the authenticated user session.",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "triggerType": {
+          "type": "string",
+          "description": "Type of security trigger fired.",
+          "enum": [
+            "QBER_THRESHOLD_EXCEEDED",
+            "EVE_SWITCH_ACTIVATED",
+            "ATTACK_VECTOR_INJECTED",
+            "AUTOMATED_MITIGATION_FIRED",
+            "AI_SENTINEL_CRITICAL_ALERT",
+            "ALERT_CLEARED"
+          ],
+          "maxLength": 50
+        },
+        "severity": {
+          "type": "string",
+          "description": "Severity level of the trigger.",
+          "enum": ["NOMINAL", "ELEVATED", "HIGH", "CRITICAL"],
+          "maxLength": 20
+        },
+        "source": {
+          "type": "string",
+          "description": "Source component or hardware channel that initiated the trigger.",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "nodeId": {
+          "type": "string",
+          "description": "Target substation node ID.",
+          "minLength": 1,
+          "maxLength": 64,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "nodeName": {
+          "type": "string",
+          "description": "Display name of the affected substation node.",
+          "minLength": 1,
+          "maxLength": 100
+        },
+        "peakQber": {
+          "type": "number",
+          "description": "Peak QBER value (%) observed during the trigger."
+        },
+        "thresholdValue": {
+          "type": "number",
+          "description": "Configured QBER_CRITICAL_THRESHOLD (%) when the trigger fired."
+        },
+        "anomalyScore": {
+          "type": "number",
+          "description": "Edge AI anomaly probability [0.0 .. 1.0] at trigger time."
+        },
+        "autoMitigated": {
+          "type": "boolean",
+          "description": "Whether automated Kyber-1024 key rotation mitigation was executed."
+        },
+        "clientTimestamp": {
+          "type": "string",
+          "description": "ISO-8601 timestamp string when the trigger occurred.",
+          "minLength": 10,
+          "maxLength": 40
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when the trigger was stored."
+        }
+      },
+      "required": [
+        "ownerId",
+        "triggerType",
+        "severity",
+        "source",
+        "nodeId",
+        "nodeName",
+        "peakQber",
+        "thresholdValue",
+        "anomalyScore",
+        "autoMitigated",
+        "clientTimestamp",
+        "createdAt"
+      ]
+    },
+    "SystemCondition": {
+      "title": "SystemCondition",
+      "description": "Captures snapshots of overall Q-GRID SENTINEL system conditions, telemetry averages, active threshold settings, and node health states.",
+      "type": "object",
+      "properties": {
+        "ownerId": {
+          "type": "string",
+          "description": "UID of the authenticated user session.",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "conditionStatus": {
+          "type": "string",
+          "description": "Overall smart grid security condition state.",
+          "enum": ["NOMINAL", "ELEVATED", "COMPROMISED", "MITIGATING"],
+          "maxLength": 30
+        },
+        "gridWideAvgQber": {
+          "type": "number",
+          "description": "Grid-wide average QBER percentage across all nodes."
+        },
+        "peakQber": {
+          "type": "number",
+          "description": "Highest QBER percentage across all nodes."
+        },
+        "qberCriticalThreshold": {
+          "type": "number",
+          "description": "Configured global QBER_CRITICAL_THRESHOLD percentage."
+        },
+        "anomalyScore": {
+          "type": "number",
+          "description": "Current TensorFlow.js Edge AI anomaly score [0.0 .. 1.0]."
+        },
+        "sensitivityPreset": {
+          "type": "string",
+          "description": "Active AI Sentinel anomaly sensitivity preset.",
+          "enum": ["CONSERVATIVE", "BALANCED", "AGGRESSIVE", "CUSTOM"],
+          "maxLength": 30
+        },
+        "automatedMitigationEnabled": {
+          "type": "boolean",
+          "description": "Whether automated firewall mitigation is currently enabled."
+        },
+        "activeNodesCount": {
+          "type": "number",
+          "description": "Number of online (non-isolated) substation nodes."
+        },
+        "isolatedNodesCount": {
+          "type": "number",
+          "description": "Number of isolated substation nodes."
+        },
+        "summaryNote": {
+          "type": "string",
+          "description": "Concise summary of the current grid telemetry condition.",
+          "minLength": 1,
+          "maxLength": 400
+        },
+        "clientTimestamp": {
+          "type": "string",
+          "description": "ISO-8601 timestamp string of the condition snapshot.",
+          "minLength": 10,
+          "maxLength": 40
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when the condition snapshot was stored."
+        }
+      },
+      "required": [
+        "ownerId",
+        "conditionStatus",
+        "gridWideAvgQber",
+        "peakQber",
+        "qberCriticalThreshold",
+        "anomalyScore",
+        "sensitivityPreset",
+        "automatedMitigationEnabled",
+        "activeNodesCount",
+        "isolatedNodesCount",
+        "summaryNote",
+        "clientTimestamp",
+        "createdAt"
+      ]
+    }
+  },
+  "firestore": {
+    "/activityLogs/{logId}": {
+      "schema": "ActivityLog",
+      "description": "Collection storing all website user and system activity logs."
+    },
+    "/triggerEvents/{triggerId}": {
+      "schema": "TriggerEvent",
+      "description": "Collection storing all QBER threshold breaches, attack triggers, and mitigation events."
+    },
+    "/systemConditions/{conditionId}": {
+      "schema": "SystemCondition",
+      "description": "Collection storing snapshots of overall smart grid telemetry conditions and threshold configurations."
+    }
+  }
+}

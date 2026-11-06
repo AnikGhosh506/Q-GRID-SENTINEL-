@@ -1,0 +1,280 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // =========================================================================
+    // 1. GLOBAL SAFETY NET (Default-Deny Catch-All)
+    // =========================================================================
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // =========================================================================
+    // 2. HARDENED PRIMITIVE HELPERS
+    // =========================================================================
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isSignedIn() {
+      return request.auth != null && request.auth.token.email_verified == true;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && (
+        request.auth.token.email == 'arpitaghosh2167@gmail.com' ||
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid))
+      );
+    }
+
+    // =========================================================================
+    // 3. ENTITY VALIDATION BLUEPRINTS (Synced with firebase-blueprint.json)
+    // =========================================================================
+    function isValidActivityLog(data) {
+      return data.keys().hasAll([
+          'ownerId',
+          'action',
+          'category',
+          'details',
+          'nodeId',
+          'qberAtEvent',
+          'clientTimestamp',
+          'createdAt'
+        ]) &&
+        data.keys().hasOnly([
+          'ownerId',
+          'action',
+          'category',
+          'details',
+          'nodeId',
+          'qberAtEvent',
+          'clientTimestamp',
+          'createdAt'
+        ]) &&
+        data.ownerId is string &&
+        data.ownerId.size() >= 1 &&
+        data.ownerId.size() <= 128 &&
+        data.ownerId.matches('^[a-zA-Z0-9_\\-]+$') &&
+        data.ownerId == request.auth.uid &&
+        data.action is string &&
+        data.action.size() >= 1 &&
+        data.action.size() <= 120 &&
+        data.category is string &&
+        data.category.size() <= 40 &&
+        data.category in [
+          'NAVIGATION',
+          'BLE_CONNECTION',
+          'PQC_MITIGATION',
+          'NODE_CONTROL',
+          'SETTINGS',
+          'EXPORT',
+          'AI_SENTINEL'
+        ] &&
+        data.details is string &&
+        data.details.size() >= 1 &&
+        data.details.size() <= 600 &&
+        data.nodeId is string &&
+        data.nodeId.size() >= 1 &&
+        data.nodeId.size() <= 64 &&
+        data.nodeId.matches('^[a-zA-Z0-9_\\-]+$') &&
+        data.qberAtEvent is number &&
+        data.qberAtEvent >= 0 &&
+        data.qberAtEvent <= 100 &&
+        data.clientTimestamp is string &&
+        data.clientTimestamp.size() >= 10 &&
+        data.clientTimestamp.size() <= 40 &&
+        data.createdAt is timestamp;
+    }
+
+    function isValidTriggerEvent(data) {
+      return data.keys().hasAll([
+          'ownerId',
+          'triggerType',
+          'severity',
+          'source',
+          'nodeId',
+          'nodeName',
+          'peakQber',
+          'thresholdValue',
+          'anomalyScore',
+          'autoMitigated',
+          'clientTimestamp',
+          'createdAt'
+        ]) &&
+        data.keys().hasOnly([
+          'ownerId',
+          'triggerType',
+          'severity',
+          'source',
+          'nodeId',
+          'nodeName',
+          'peakQber',
+          'thresholdValue',
+          'anomalyScore',
+          'autoMitigated',
+          'clientTimestamp',
+          'createdAt'
+        ]) &&
+        data.ownerId is string &&
+        data.ownerId.size() >= 1 &&
+        data.ownerId.size() <= 128 &&
+        data.ownerId.matches('^[a-zA-Z0-9_\\-]+$') &&
+        data.ownerId == request.auth.uid &&
+        data.triggerType is string &&
+        data.triggerType.size() <= 50 &&
+        data.triggerType in [
+          'QBER_THRESHOLD_EXCEEDED',
+          'EVE_SWITCH_ACTIVATED',
+          'ATTACK_VECTOR_INJECTED',
+          'AUTOMATED_MITIGATION_FIRED',
+          'AI_SENTINEL_CRITICAL_ALERT',
+          'ALERT_CLEARED'
+        ] &&
+        data.severity is string &&
+        data.severity.size() <= 20 &&
+        data.severity in ['NOMINAL', 'ELEVATED', 'HIGH', 'CRITICAL'] &&
+        data.source is string &&
+        data.source.size() >= 1 &&
+        data.source.size() <= 80 &&
+        data.nodeId is string &&
+        data.nodeId.size() >= 1 &&
+        data.nodeId.size() <= 64 &&
+        data.nodeId.matches('^[a-zA-Z0-9_\\-]+$') &&
+        data.nodeName is string &&
+        data.nodeName.size() >= 1 &&
+        data.nodeName.size() <= 100 &&
+        data.peakQber is number &&
+        data.peakQber >= 0 &&
+        data.peakQber <= 100 &&
+        data.thresholdValue is number &&
+        data.thresholdValue >= 1 &&
+        data.thresholdValue <= 50 &&
+        data.anomalyScore is number &&
+        data.anomalyScore >= 0 &&
+        data.anomalyScore <= 1 &&
+        data.autoMitigated is bool &&
+        data.clientTimestamp is string &&
+        data.clientTimestamp.size() >= 10 &&
+        data.clientTimestamp.size() <= 40 &&
+        data.createdAt is timestamp;
+    }
+
+    function isValidSystemCondition(data) {
+      return data.keys().hasAll([
+          'ownerId',
+          'conditionStatus',
+          'gridWideAvgQber',
+          'peakQber',
+          'qberCriticalThreshold',
+          'anomalyScore',
+          'sensitivityPreset',
+          'automatedMitigationEnabled',
+          'activeNodesCount',
+          'isolatedNodesCount',
+          'summaryNote',
+          'clientTimestamp',
+          'createdAt'
+        ]) &&
+        data.keys().hasOnly([
+          'ownerId',
+          'conditionStatus',
+          'gridWideAvgQber',
+          'peakQber',
+          'qberCriticalThreshold',
+          'anomalyScore',
+          'sensitivityPreset',
+          'automatedMitigationEnabled',
+          'activeNodesCount',
+          'isolatedNodesCount',
+          'summaryNote',
+          'clientTimestamp',
+          'createdAt'
+        ]) &&
+        data.ownerId is string &&
+        data.ownerId.size() >= 1 &&
+        data.ownerId.size() <= 128 &&
+        data.ownerId.matches('^[a-zA-Z0-9_\\-]+$') &&
+        data.ownerId == request.auth.uid &&
+        data.conditionStatus is string &&
+        data.conditionStatus.size() <= 30 &&
+        data.conditionStatus in ['NOMINAL', 'ELEVATED', 'COMPROMISED', 'MITIGATING'] &&
+        data.gridWideAvgQber is number &&
+        data.gridWideAvgQber >= 0 &&
+        data.gridWideAvgQber <= 100 &&
+        data.peakQber is number &&
+        data.peakQber >= 0 &&
+        data.peakQber <= 100 &&
+        data.qberCriticalThreshold is number &&
+        data.qberCriticalThreshold >= 1 &&
+        data.qberCriticalThreshold <= 50 &&
+        data.anomalyScore is number &&
+        data.anomalyScore >= 0 &&
+        data.anomalyScore <= 1 &&
+        data.sensitivityPreset is string &&
+        data.sensitivityPreset.size() <= 30 &&
+        data.sensitivityPreset in ['CONSERVATIVE', 'BALANCED', 'AGGRESSIVE', 'CUSTOM'] &&
+        data.automatedMitigationEnabled is bool &&
+        data.activeNodesCount is number &&
+        data.activeNodesCount >= 0 &&
+        data.activeNodesCount <= 100 &&
+        data.isolatedNodesCount is number &&
+        data.isolatedNodesCount >= 0 &&
+        data.isolatedNodesCount <= 100 &&
+        data.summaryNote is string &&
+        data.summaryNote.size() >= 1 &&
+        data.summaryNote.size() <= 400 &&
+        data.clientTimestamp is string &&
+        data.clientTimestamp.size() >= 10 &&
+        data.clientTimestamp.size() <= 40 &&
+        data.createdAt is timestamp;
+    }
+
+    // =========================================================================
+    // 4. COLLECTION RULES
+    // =========================================================================
+
+    match /admins/{adminId} {
+      allow get: if isSignedIn() && isValidId(adminId) && request.auth.uid == adminId;
+      allow list, create, update, delete: if false;
+    }
+
+    match /activityLogs/{logId} {
+      allow get: if isSignedIn() && isValidId(logId) && (existing().ownerId == request.auth.uid || isAdmin());
+      allow list: if isSignedIn() && (resource.data.ownerId == request.auth.uid || isAdmin());
+      allow create: if isSignedIn() && isValidId(logId) && isValidActivityLog(incoming()) && incoming().createdAt == request.time;
+      allow update: if isSignedIn() && isValidId(logId) && isValidActivityLog(incoming()) && (
+        existing().ownerId == request.auth.uid || isAdmin()
+      ) && incoming().ownerId == existing().ownerId && incoming().createdAt == existing().createdAt && incoming().diff(existing()).affectedKeys().hasOnly(['details']);
+      allow delete: if isSignedIn() && isValidId(logId) && (existing().ownerId == request.auth.uid || isAdmin());
+    }
+
+    match /triggerEvents/{triggerId} {
+      allow get: if isSignedIn() && isValidId(triggerId) && (existing().ownerId == request.auth.uid || isAdmin());
+      allow list: if isSignedIn() && (resource.data.ownerId == request.auth.uid || isAdmin());
+      allow create: if isSignedIn() && isValidId(triggerId) && isValidTriggerEvent(incoming()) && incoming().createdAt == request.time;
+      allow update: if isSignedIn() && isValidId(triggerId) && isValidTriggerEvent(incoming()) && (
+        existing().ownerId == request.auth.uid || isAdmin()
+      ) && incoming().ownerId == existing().ownerId && incoming().createdAt == existing().createdAt && incoming().diff(existing()).affectedKeys().hasOnly(['peakQber', 'autoMitigated']);
+      allow delete: if isSignedIn() && isValidId(triggerId) && (existing().ownerId == request.auth.uid || isAdmin());
+    }
+
+    match /systemConditions/{conditionId} {
+      allow get: if isSignedIn() && isValidId(conditionId) && (existing().ownerId == request.auth.uid || isAdmin());
+      allow list: if isSignedIn() && (resource.data.ownerId == request.auth.uid || isAdmin());
+      allow create: if isSignedIn() && isValidId(conditionId) && isValidSystemCondition(incoming()) && incoming().createdAt == request.time;
+      allow update: if isSignedIn() && isValidId(conditionId) && isValidSystemCondition(incoming()) && (
+        existing().ownerId == request.auth.uid || isAdmin()
+      ) && incoming().ownerId == existing().ownerId && incoming().createdAt == existing().createdAt && incoming().diff(existing()).affectedKeys().hasOnly(['summaryNote', 'conditionStatus']);
+      allow delete: if isSignedIn() && isValidId(conditionId) && (existing().ownerId == request.auth.uid || isAdmin());
+    }
+  }
+}
